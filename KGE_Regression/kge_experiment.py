@@ -340,7 +340,7 @@ class Pipeline:
         selected_cid = [entity_id.split(":")[-1] for entity_id in selected_compound]
         masked_compound = [
             entity_id
-            for entity_id in set(dataset.entity_to_id).difference(
+            for entity_id in set(self.dataset.entity_to_id).difference(
                 set(self.training.entity_to_id.keys())
             )
         ]
