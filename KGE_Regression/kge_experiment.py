@@ -326,7 +326,7 @@ class Pipeline:
         )
         return result
 
-    def build_pandas(self, epoch):
+    def build_pandas(self):
         pubchem_compound = [
             entity_id
             for entity_id in self.dataset.entity_to_id
@@ -458,7 +458,7 @@ class Pipeline:
         print("masked cid and masked_cid_smile should share same element:")
         assert bool(set(masked_cid) == set(masked_cid_smile.cid)) == True
         print("checked")
-        embedding_smile_path, masked_cid_smile_path = self.path_manager.df_path(epoch)
+        embedding_smile_path, masked_cid_smile_path = self.path_manager.df_path()
         embedding_smile.to_pickle(embedding_smile_path)
         masked_cid_smile.to_pickle(masked_cid_smile_path)
 

@@ -11,7 +11,4 @@ pm = PathManager(
 )
 exp = Pipeline(OpenBioLink, pm)
 embedding_smile_path, masked_cid_smile_path = pm.df_path()
-exp.train_full_graph().save_full_graph().train_sub_graph().save_sub_graph().build_pandas(
-    embedding_smile_path=embedding_smile_path,
-    masked_cid_smile_path=masked_cid_smile_path,
-)
+exp.train_full_graph().save_full_graph().train_sub_graph().save_sub_graph().build_pandas()
