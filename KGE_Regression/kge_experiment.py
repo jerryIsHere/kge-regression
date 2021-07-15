@@ -86,7 +86,7 @@ class Pipeline:
         )
         if not os.path.exists(sub_graph_path):
             build_sub_graph(
-                dataset,
+                self.dataset,
                 sub_graph_path,
                 skip_id=[
                     "PUBCHEM.COMPOUND:" + str(cid)
