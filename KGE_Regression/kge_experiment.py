@@ -65,7 +65,7 @@ class Pipeline:
     def __init__(
         self,
         dataset,
-        path_manager,
+        path_manager: PathManager,
         optiizer=Adam,
         ks=[1, 3, 5, 10],
     ):
@@ -79,7 +79,6 @@ class Pipeline:
         sub_graph_path = os.path.join(
             self.path_manager.cache_directory, "sub_graph.npz"
         )
-        self.model_name = model_name
         from pykeen.triples import TriplesFactory
 
         self.cid_smile = pd.read_csv(
@@ -165,7 +164,9 @@ class Pipeline:
 
     def train_full_graph(self, patience=2, frequency=10):
         print("\ntrain on full graph")
-        model = Model_dict[self.model_name](triples_factory=self.dataset.training)
+        model = Model_dict[self.path_manager.model_name](
+            triples_factory=self.dataset.training
+        )
 
         from pykeen.training import SLCWATrainingLoop
 
@@ -185,7 +186,9 @@ class Pipeline:
 
     def train_sub_graph(self, patience=2, frequency=10):
         print("\ntrain on sub graph")
-        my_model = Model_dict[self.model_name](triples_factory=self.training)
+        my_model = Model_dict[self.path_manager.model_name](
+            triples_factory=self.training
+        )
 
         from pykeen.training import SLCWATrainingLoop
 
@@ -207,7 +210,7 @@ class Pipeline:
         import torch
 
         with torch.no_grad():
-            complemented_model = Model_dict[self.model_name](
+            complemented_model = Model_dict[self.path_manager.model_name](
                 triples_factory=self.dataset.training
             ).cpu()
             for e in self.dataset.training.entity_to_id:
