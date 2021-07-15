@@ -465,13 +465,18 @@ class Pipeline:
 
 
 def build_sub_graph(dataset, sub_graph_path, skip_id, split=0.2):
+    compound = [
+        entity_id
+        for entity_id in dataset.entity_to_id
+        if "PUBCHEM.COMPOUND" in entity_id and entity_id
+    ]
     pubchem_compound = [
         entity_id
         for entity_id in dataset.entity_to_id
         if "PUBCHEM.COMPOUND" in entity_id and entity_id not in skip_id
     ]
     np.random.seed(1234)
-    num_compound = len(pubchem_compound)
+    num_compound = len(compound)
     num_remove = int(num_compound * split)
     num_non_compound = len(dataset.entity_to_id) - num_compound
     num_relation = len(dataset.relation_to_id)
