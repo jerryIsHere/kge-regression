@@ -380,16 +380,16 @@ class Pipeline:
         assert len(pubchem_compound) == len(masked_compound) + len(selected_compound)
         print("checked")  # violated if masked_compound have duplication
         print(
-            "\nlength of unique selected_compound should equal to the length of 90% of the full set:"
+            "\nlength of unique selected_compound should equal to the length of 80% of the full set:"
         )
         assert len(np.unique(selected_compound)) == len(pubchem_compound) - int(
-            len(pubchem_compound) * 0.1
+            len(pubchem_compound) * 0.2
         )
         print("checked")  # violated if masked_compound have duplication
         print(
-            "\nlength of unique masked_compound should equal to the length of 10% of the full set:"
+            "\nlength of unique masked_compound should equal to the length of 20% of the full set:"
         )
-        assert len(np.unique(masked_compound)) == int(len(pubchem_compound) * 0.1)
+        assert len(np.unique(masked_compound)) == int(len(pubchem_compound) * 0.2)
         print("checked")  # violated if masked_compound have duplication
         print("\nthe selected set should be a (proper) subset of training set:")
         assert (
