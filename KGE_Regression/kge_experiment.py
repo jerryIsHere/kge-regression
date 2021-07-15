@@ -330,7 +330,7 @@ class Pipeline:
         pubchem_compound = [
             entity_id
             for entity_id in self.dataset.entity_to_id
-            if "PUBCHEM.COMPOUND" in id
+            if "PUBCHEM.COMPOUND" in entity_id
         ]
         selected_compound = [
             entity_id
