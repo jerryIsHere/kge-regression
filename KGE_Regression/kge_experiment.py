@@ -6,36 +6,85 @@ from functools import reduce
 from pykeen.models import TransE
 
 Model_dict = {
-    "TransE_400_ep": lambda triples_factory: TransE(
+    "TransE_400": lambda triples_factory: TransE(
         triples_factory=triples_factory, embedding_dim=400, random_seed=1234
     )
 }
+
+
+class PathManager:
+    def __init__(
+        self,
+        model_name,
+        epoch,
+        smile_path,
+        cache_directory,
+        model_directory,
+        pandas_directory,
+    ):
+        self.model_name = model_name
+        self.epoch = epoch
+        self.smile_path = smile_path
+        self.cache_directory = cache_directory
+        self.model_directory = model_directory
+        self.pandas_directory = pandas_directory
+
+    def model_describer(
+        self,
+    ):
+        return self.model_name + "_ep" + str(self.epoch)
+
+    def model_path(self, key):
+        return os.path.join(
+            self.model_directory, key + "_" + self.model_describer(self.epoch)
+        )
+
+    def df_path(self):
+        return (
+            os.path.join(
+                self.pandas_directory,
+                self.model_describer(self.epoch) + "_" + "embedding_smile_df.pkl",
+            ),
+            os.path.join(
+                self.pandas_directory,
+                self.model_describer(self.epoch) + "_" + "masked_cid_smile_df.pkl",
+            ),
+        )
+
+    def inference_df_path(self, regressor_name):
+        return os.path.join(
+            self.pandas_directory,
+            self.model_describer(self.epoch)
+            + "_"
+            + regressor_name
+            + "_embedding_smile_df.pkl",
+        )
 
 
 class Pipeline:
     def __init__(
         self,
         dataset,
-        model_initializer,
-        cache_directory,
-        smile_path,
-        model_directory,
+        path_manager,
         optiizer=Adam,
         ks=[1, 3, 5, 10],
     ):
-        self.model_directory = model_directory
-        if self.model_directory[-1] != "/":
-            self.model_directory += "/"
+
         from pykeen.evaluation import RankBasedEvaluator
 
         self.evaluator = RankBasedEvaluator(ks=ks)
         self.optimizer = optiizer
-        self.dataset = dataset(cache_root=cache_directory)
-        sub_graph_path = os.path.join(cache_directory, "sub_graph.npz")
-        self.model_initializer = model_initializer
+        self.path_manager = path_manager
+        self.dataset = dataset(cache_root=self.path_manager.cache_directory)
+        sub_graph_path = os.path.join(
+            self.path_manager.cache_directory, "sub_graph.npz"
+        )
+        self.model_name = model_name
         from pykeen.triples import TriplesFactory
 
-        self.cid_smile = pd.read_csv(smile_path, sep="\t", names=["cid", "smile"])
+        self.cid_smile = pd.read_csv(
+            self.path_manager.smile_path, sep="\t", names=["cid", "smile"]
+        )
         if not os.path.exists(sub_graph_path):
             build_sub_graph(
                 dataset,
@@ -78,51 +127,52 @@ class Pipeline:
             )
             print("checked")
 
-    def save_full_graph(self, model_name):
-        self.save("full_graph", model_name)
+    def save_full_graph(self):
+        self.save("full_graph")
         return self
 
-    def save_sub_graph(self, model_name):
-        self.save("sub_graph", model_name)
+    def save_sub_graph(self):
+        self.save("sub_graph")
         return self
 
-    def save(self, model_key, model_name):
+    def save(self, model_key):
         import torch
         import pickle
 
         torch.save(
             self.models[model_key],
-            self.model_directory + model_key + "_" + model_name,
+            self.path_manager.model_path(model_key),
             pickle_protocol=pickle.HIGHEST_PROTOCOL,
         )
         return self
 
-    def save_all(self, model_name):
+    def save_all(self):
         for graph in self.models:
-            self.save(graph, model_name)
+            self.save(graph)
         return self
 
-    def load(self, graph, model_name, map_location=None):
+    def load(self, graph, map_location=None):
         import torch
         import os
 
-        if os.path.exists(self.model_directory + graph + "_" + model_name):
+        model_path = self.path_manager.model_path(graph)
+        if os.path.exists(model_path):
             self.models[graph] = torch.load(
-                self.model_directory + graph + "_" + model_name,
+                model_path,
                 map_location=map_location,
             )
         return self
 
-    def train_full_graph(self, num_epochs=None, patience=2, frequency=10):
+    def train_full_graph(self, patience=2, frequency=10):
         print("\ntrain on full graph")
-        model = Model_dict[self.model_initializer](triples_factory=self.dataset.training)
+        model = Model_dict[self.model_name](triples_factory=self.dataset.training)
 
         from pykeen.training import SLCWATrainingLoop
 
         training_loop = SLCWATrainingLoop(
             model=model, optimizer=self.optimizer(params=model.get_grad_params())
         )
-        training_loop.train(num_epochs=num_epochs)
+        training_loop.train(num_epochs=self.path_manager.epoch)
         self.models["full_graph"] = model
         return self
 
@@ -133,16 +183,16 @@ class Pipeline:
         )
         return self
 
-    def train_sub_graph(self, num_epochs=None, patience=2, frequency=10):
+    def train_sub_graph(self, patience=2, frequency=10):
         print("\ntrain on sub graph")
-        my_model = Model_dict[self.model_initializer](triples_factory=self.training)
+        my_model = Model_dict[self.model_name](triples_factory=self.training)
 
         from pykeen.training import SLCWATrainingLoop
 
         training_loop = SLCWATrainingLoop(
             model=my_model, optimizer=self.optimizer(params=my_model.get_grad_params())
         )
-        training_loop.train(num_epochs=num_epochs)
+        training_loop.train(num_epochs=self.path_manager.epoch)
         self.models["sub_graph"] = my_model
         return self
 
@@ -157,7 +207,7 @@ class Pipeline:
         import torch
 
         with torch.no_grad():
-            complemented_model = Model_dict[self.model_initializer](
+            complemented_model = Model_dict[self.model_name](
                 triples_factory=self.dataset.training
             ).cpu()
             for e in self.dataset.training.entity_to_id:
@@ -193,7 +243,7 @@ class Pipeline:
         )
         return self
 
-    def plot_results(self, plt_location, mask=[]):
+    def plot_results(self, plt_directory, mask=[]):
         import matplotlib
         import matplotlib.pyplot as plt
         import numpy as np
@@ -254,7 +304,7 @@ class Pipeline:
             ax.set_xticklabels(labels)
             import os
 
-            plt.savefig(os.path.join(plt_location, now_str + "_" + title))
+            plt.savefig(os.path.join(plt_directory, now_str + "_" + title))
         return self
 
     def evaluate(self, name, mapped_triples, batch_size):
@@ -270,7 +320,7 @@ class Pipeline:
         )
         return result
 
-    def build_pandas(self, embedding_smile_path, masked_cid_smile_path):
+    def build_pandas(self, epoch):
         pubchem_compound = [
             entity_id
             for entity_id in self.dataset.entity_to_id
@@ -402,7 +452,7 @@ class Pipeline:
         print("masked cid and masked_cid_smile should share same element:")
         assert bool(set(masked_cid) == set(masked_cid_smile.cid)) == True
         print("checked")
-
+        embedding_smile_path, masked_cid_smile_path = self.path_manager.df_path(epoch)
         embedding_smile.to_pickle(embedding_smile_path)
         masked_cid_smile.to_pickle(masked_cid_smile_path)
 

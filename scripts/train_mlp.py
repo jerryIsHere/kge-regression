@@ -1,9 +1,21 @@
 from KGE_Regression.datasets import build_train_test_dataset, inference_dataset
 from KGE_Regression.model import RobertaForMLPEmbeddingRegression
+from KGE_Regression.kge_experiment import PathManager
 from transformers import RobertaTokenizer
 
+pm = PathManager(
+    model_name="TransE_400",
+    epoch=100,
+    cache_directory="/public/ckchan666/CS6536/cache",
+    smile_path="/home/ms20/ckchan666/CS6536/217507403391658357.txt.gz",
+    model_directory="/public/ckchan666/CS6536/model",
+    pandas_directory="/public/ckchan666/CS6536/pd",
+)
+embedding_smile_path, masked_cid_smile_path = pm.df_path()
 tokenizer = RobertaTokenizer.from_pretrained("seyonec/ChemBERTa-zinc-base-v1")
-train_dataset, test_dataset = build_train_test_dataset("", tokenizer)
+train_dataset, test_dataset = build_train_test_dataset(
+    embedding_smile_path=embedding_smile_path, tokenizer=tokenizer
+)
 attention_loss_weight = 0.0025
 model = RobertaForMLPEmbeddingRegression.from_pretrained(
     "seyonec/ChemBERTa-zinc-base-v1", hidden_dropout_prob=0.45, num_labels=400
@@ -48,7 +60,10 @@ import numpy as np
 import torch
 
 loader = DataLoader(
-    inference_dataset("", tokenizer), batch_size=64, shuffle=False, pin_memory=False
+    inference_dataset(masked_cid_smile_path, tokenizer),
+    batch_size=64,
+    shuffle=False,
+    pin_memory=False,
 )
 embedding = np.empty([0, 400])
 model.eval()
@@ -61,7 +76,7 @@ with torch.no_grad():
 
 import pandas as pd
 
-masked_cid_smile = pd.read_pickle("")
+masked_cid_smile = pd.read_pickle(masked_cid_smile_path)
 masked_cid_smile_embedding = masked_cid_smile.copy()
 masked_cid_smile_embedding["embedding"] = [row for row in embedding]
-masked_cid_smile_embedding.to_pickle("")
+masked_cid_smile_embedding.to_pickle(pm.inference_df_path("mlp"))
