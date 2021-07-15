@@ -170,7 +170,9 @@ class Pipeline:
             triples_factory=self.dataset.training,
             optimizer=self.optimizer(params=model.get_grad_params()),
         )
-        training_loop.train(num_epochs=self.path_manager.epoch)
+        training_loop.train(
+            triples_factory=self.dataset.training, num_epochs=self.path_manager.epoch
+        )
         self.models["full_graph"] = model
         return self
 
@@ -194,7 +196,9 @@ class Pipeline:
             triples_factory=self.dataset.training,
             optimizer=self.optimizer(params=my_model.get_grad_params()),
         )
-        training_loop.train(num_epochs=self.path_manager.epoch)
+        training_loop.train(
+            triples_factory=self.dataset.training, num_epochs=self.path_manager.epoch
+        )
         self.models["sub_graph"] = my_model
         return self
 
