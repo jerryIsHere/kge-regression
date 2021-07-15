@@ -420,7 +420,7 @@ class Pipeline:
 
         print("Check the embedding_smile df")
         print("selected cid and embedding_smile should share same element:")
-        assert bool(set(selected_cid) == set(embedding_smile.cid)) == True
+        assert bool(set(selected_cid) == set(embedding_smile.cid.astype(str))) == True
         print("checked")
         print(
             "\nlength of embedding_smile with embedding should equal to length os selected compound:"
