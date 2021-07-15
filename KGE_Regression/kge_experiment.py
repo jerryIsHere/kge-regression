@@ -36,25 +36,25 @@ class PathManager:
 
     def model_path(self, key):
         return os.path.join(
-            self.model_directory, key + "_" + self.model_describer(self.epoch)
+            self.model_directory, key + "_" + self.model_describer()
         )
 
     def df_path(self):
         return (
             os.path.join(
                 self.pandas_directory,
-                self.model_describer(self.epoch) + "_" + "embedding_smile_df.pkl",
+                self.model_describer() + "_" + "embedding_smile_df.pkl",
             ),
             os.path.join(
                 self.pandas_directory,
-                self.model_describer(self.epoch) + "_" + "masked_cid_smile_df.pkl",
+                self.model_describer() + "_" + "masked_cid_smile_df.pkl",
             ),
         )
 
     def inference_df_path(self, regressor_name):
         return os.path.join(
             self.pandas_directory,
-            self.model_describer(self.epoch)
+            self.model_describer()
             + "_"
             + regressor_name
             + "_embedding_smile_df.pkl",

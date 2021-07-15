@@ -4,10 +4,12 @@ max_token_length = 512
 from sklearn.model_selection import train_test_split
 
 
-def build_train_test_dataset(embedding_smile_path, tokenizer):
+def build_train_test_dataset(
+    embedding_smile_path, tokenizer, train_size=0.8, test_size=0.2
+):
     embedding_smile = pd.read_pickle(embedding_smile_path)
     train, test = train_test_split(
-        embedding_smile, train_size=0.8, test_size=0.2, random_state=42
+        embedding_smile, train_size=train_size, test_size=test_size, random_state=42
     )
     return (train_dataset(train, tokenizer), test_dataset(test, tokenizer))
 
