@@ -35,9 +35,7 @@ class PathManager:
         return self.model_name + "_ep" + str(self.epoch)
 
     def model_path(self, key):
-        return os.path.join(
-            self.model_directory, key + "_" + self.model_describer()
-        )
+        return os.path.join(self.model_directory, key + "_" + self.model_describer())
 
     def df_path(self):
         return (
@@ -54,10 +52,7 @@ class PathManager:
     def inference_df_path(self, regressor_name):
         return os.path.join(
             self.pandas_directory,
-            self.model_describer()
-            + "_"
-            + regressor_name
-            + "_embedding_smile_df.pkl",
+            self.model_describer() + "_" + regressor_name + "_embedding_smile_df.pkl",
         )
 
 
@@ -164,14 +159,14 @@ class Pipeline:
 
     def train_full_graph(self, patience=2, frequency=10):
         print("\ntrain on full graph")
-        model = Model_dict[self.path_manager.model_name](
-            triples_factory=self.dataset.training
-        )
+        model = Model_dict[self.path_manager.model_name]()
 
         from pykeen.training import SLCWATrainingLoop
 
         training_loop = SLCWATrainingLoop(
-            model=model, optimizer=self.optimizer(params=model.get_grad_params())
+            model=model,
+            triples_factory=self.dataset.training,
+            optimizer=self.optimizer(params=model.get_grad_params()),
         )
         training_loop.train(num_epochs=self.path_manager.epoch)
         self.models["full_graph"] = model
@@ -186,14 +181,14 @@ class Pipeline:
 
     def train_sub_graph(self, patience=2, frequency=10):
         print("\ntrain on sub graph")
-        my_model = Model_dict[self.path_manager.model_name](
-            triples_factory=self.training
-        )
+        my_model = Model_dict[self.path_manager.model_name]()
 
         from pykeen.training import SLCWATrainingLoop
 
         training_loop = SLCWATrainingLoop(
-            model=my_model, optimizer=self.optimizer(params=my_model.get_grad_params())
+            model=my_model,
+            triples_factory=self.dataset.training,
+            optimizer=self.optimizer(params=my_model.get_grad_params()),
         )
         training_loop.train(num_epochs=self.path_manager.epoch)
         self.models["sub_graph"] = my_model
