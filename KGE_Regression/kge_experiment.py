@@ -441,7 +441,7 @@ class Pipeline:
             )
         print("checked")
         print(
-            "each embedding from either embedding_smile or cid_smile should be equal:"
+            "each embedding from either embedding_smile or sub_graph_model should be equal:"
         )
         for cid in embedding_smile.cid:
             assert np.array_equal(
@@ -457,7 +457,7 @@ class Pipeline:
 
         print("Check the masked_cid_smile df")
         print("masked cid and masked_cid_smile should share same element:")
-        assert bool(set(masked_cid) == set(masked_cid_smile.cid)) == True
+        assert bool(set(masked_cid) == set(masked_cid_smile.cid.astype(str))) == True
         print("checked")
         embedding_smile_path, masked_cid_smile_path = self.path_manager.df_path()
         embedding_smile.to_pickle(embedding_smile_path)
