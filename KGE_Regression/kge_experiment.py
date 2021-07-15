@@ -357,8 +357,8 @@ class Pipeline:
                 ],
             }
         )
-        masked_cid_smile = cid_smile[cid_smile.cid.isin(masked_cid)]
-        selected_cid_smile = cid_smile[cid_smile.cid.isin(selected_cid)]
+        masked_cid_smile = self.cid_smile[self.cid_smile.cid.isin(masked_cid)]
+        selected_cid_smile = self.cid_smile[self.cid_smile.cid.isin(selected_cid)]
         embedding_smile = selected_cid_smile.join(
             cid_embedding.set_index("cid"), on="cid"
         )
@@ -436,7 +436,7 @@ class Pipeline:
         print("each smile from either embedding_smile or cid_smile should be equal:")
         for cid in embedding_smile.cid:
             assert embedding_smile.smile[embedding_smile.cid == cid].equals(
-                cid_smile.smile[cid_smile.cid == cid]
+                self.cid_smile.smile[self.cid_smile.cid == cid]
             )
         print("checked")
         print(
