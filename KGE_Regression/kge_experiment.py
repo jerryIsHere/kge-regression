@@ -159,7 +159,9 @@ class Pipeline:
 
     def train_full_graph(self, patience=2, frequency=10):
         print("\ntrain on full graph")
-        model = Model_dict[self.path_manager.model_name]()
+        model = Model_dict[self.path_manager.model_name](
+            triples_factory=self.dataset.training
+        )
 
         from pykeen.training import SLCWATrainingLoop
 
@@ -181,7 +183,9 @@ class Pipeline:
 
     def train_sub_graph(self, patience=2, frequency=10):
         print("\ntrain on sub graph")
-        my_model = Model_dict[self.path_manager.model_name]()
+        my_model = Model_dict[self.path_manager.model_name](
+            triples_factory=self.training
+        )
 
         from pykeen.training import SLCWATrainingLoop
 
