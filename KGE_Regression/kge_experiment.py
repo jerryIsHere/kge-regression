@@ -481,7 +481,7 @@ def build_sub_graph(dataset, sub_graph_path, skip_id, split=0.2):
     num_non_compound = len(dataset.entity_to_id) - num_compound
     num_relation = len(dataset.relation_to_id)
     random_compound = np.random.choice(
-        pubchem_compound, replace=False, size=num_compound
+        pubchem_compound, replace=False, size=len(pubchem_compound)
     )
     random_compound_id = [
         dataset.training.entity_to_id[name] for name in random_compound
