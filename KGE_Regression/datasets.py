@@ -17,7 +17,7 @@ def build_train_test_dataset(
 class train_dataset(torch.utils.data.Dataset):
     def __init__(self, train, tokenizer, start=0):
         super(train_dataset).__init__()
-        assert end > start, "this example code only works with end >= start"
+        assert len(train) > start, "this example code only works with end >= start"
         self.start = start
         self.train = train
         self.end = len(train)
@@ -43,7 +43,7 @@ class train_dataset(torch.utils.data.Dataset):
 class test_dataset(torch.utils.data.Dataset):
     def __init__(self, test, tokenizer, start=0):
         super(test_dataset).__init__()
-        assert end > start, "this example code only works with end >= start"
+        assert len(test) > start, "this example code only works with end >= start"
         self.start = start
         self.end = len(test)
         self.test = test
