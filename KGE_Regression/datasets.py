@@ -74,7 +74,9 @@ class inference_dataset(torch.utils.data.Dataset):
         super(inference_dataset).__init__()
         masked_cid_smile = pd.read_pickle(masked_cid_smile_path)
         max_token_length = 512
-        assert end > start, "this example code only works with end >= start"
+        assert (
+            len(masked_cid_smile) > start
+        ), "this example code only works with end >= start"
         self.start = start
         self.pd = masked_cid_smile
         self.end = len(masked_cid_smile)
@@ -94,6 +96,9 @@ class inference_dataset(torch.utils.data.Dataset):
         return {  # labels: torch.tensor(self.labels[key]),
             "input_ids": torch.tensor(token)
         }
+
+
+import numpy as np
 
 
 def evaluate_fn(eval):
