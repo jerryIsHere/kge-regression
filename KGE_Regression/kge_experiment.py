@@ -310,7 +310,11 @@ class Pipeline:
             ax.set_xticklabels(labels)
             import os
 
-            plt.savefig(os.path.join(plt_directory, now_str + "_" + title))
+            plt.savefig(
+                os.path.join(
+                    plt_directory, now_str + "_" + title + "wo_" + "_".join(mask)
+                )
+            )
         return self
 
     def evaluate(self, name, mapped_triples, batch_size):
