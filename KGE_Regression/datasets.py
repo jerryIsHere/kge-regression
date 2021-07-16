@@ -36,7 +36,7 @@ class train_dataset(torch.utils.data.Dataset):
 
         return {  # labels: torch.tensor(self.labels[key]),
             "input_ids": torch.tensor(token),
-            "labels": torch.tensor(train.iloc[key]["embedding"]),
+            "labels": torch.tensor(self.train.iloc[key]["embedding"]),
         }
 
 
@@ -62,7 +62,7 @@ class test_dataset(torch.utils.data.Dataset):
 
         return {  #'labels': torch.tensor(self.labels[key]),
             "input_ids": torch.tensor(token),
-            "labels": torch.tensor(test.iloc[key]["embedding"]),
+            "labels": torch.tensor(self.test.iloc[key]["embedding"]),
         }
 
 
