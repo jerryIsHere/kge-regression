@@ -19,8 +19,12 @@ train_dataset, test_dataset = build_train_test_dataset(
 
 attention_loss_weight = 0.0025
 model = RobertaForEmbeddingRegression.from_pretrained(
-    "seyonec/ChemBERTa-zinc-base-v1", hidden_dropout_prob=0.45, num_labels=400
+    "seyonec/ChemBERTa-zinc-base-v1",
+    hidden_dropout_prob=0.45,
+    num_labels=400,
+    attention_loss_weight=attention_loss_weight,
 )
+model.set_attention_loss_weight(attention_loss_weight)
 from transformers import Trainer, TrainingArguments
 import numpy as np
 

@@ -16,7 +16,6 @@ tokenizer = RobertaTokenizer.from_pretrained("seyonec/ChemBERTa-zinc-base-v1")
 train_dataset, test_dataset = build_train_test_dataset(
     embedding_smile_path=embedding_smile_path, tokenizer=tokenizer
 )
-attention_loss_weight = 0.0025
 model = RobertaForMLPEmbeddingRegression.from_pretrained(
     "seyonec/ChemBERTa-zinc-base-v1", hidden_dropout_prob=0.45, num_labels=400
 )

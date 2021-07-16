@@ -5,6 +5,7 @@ import torch.utils.checkpoint
 from torch.nn import L1Loss
 from torch.nn import MSELoss
 
+
 class RobertaForMLPEmbeddingRegression(RobertaPreTrainedModel):
     _keys_to_ignore_on_load_missing = [r"position_ids"]
 
@@ -36,7 +37,9 @@ class RobertaForMLPEmbeddingRegression(RobertaPreTrainedModel):
             config.num_labels - 1]`. If :obj:`config.num_labels == 1` a regression loss is computed (Mean-Square loss),
             If :obj:`config.num_labels > 1` a classification loss is computed (Cross-Entropy).
         """
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         outputs = self.roberta(
             input_ids,
@@ -69,37 +72,35 @@ class RobertaForMLPEmbeddingRegression(RobertaPreTrainedModel):
         )
 
 
-
 class RobertaEmbeddingMappingHead(nn.Module):
     """Head for sentence-level classification tasks."""
 
     def __init__(self, config):
         super().__init__()
-        self.conv1 = nn.Conv1d(config.hidden_size,config.hidden_size,1)
-        self.conv2 = nn.Conv1d(config.hidden_size,config.num_labels,1)
-        self.conv3 = nn.Conv1d(config.num_labels,config.num_labels,1)
+        self.conv1 = nn.Conv1d(config.hidden_size, config.hidden_size, 1)
+        self.conv2 = nn.Conv1d(config.hidden_size, config.num_labels, 1)
+        self.conv3 = nn.Conv1d(config.num_labels, config.num_labels, 1)
 
-        self.atten1 = nn.Conv1d(config.hidden_size,384,1)
-        self.atten2 = nn.Conv1d(384,192,1)
-        self.atten3 = nn.Conv1d(192,1,1)
+        self.atten1 = nn.Conv1d(config.hidden_size, 384, 1)
+        self.atten2 = nn.Conv1d(384, 192, 1)
+        self.atten3 = nn.Conv1d(192, 1, 1)
 
-        self.fcn1_1 = nn.Conv1d(config.hidden_size,config.hidden_size,1)
-        self.fcn1_2 = nn.Conv1d(config.hidden_size,config.num_labels,1)
-        self.fcn1_3 = nn.Conv1d(config.num_labels,config.num_labels,1)
+        self.fcn1_1 = nn.Conv1d(config.hidden_size, config.hidden_size, 1)
+        self.fcn1_2 = nn.Conv1d(config.hidden_size, config.num_labels, 1)
+        self.fcn1_3 = nn.Conv1d(config.num_labels, config.num_labels, 1)
 
-        self.fcn2_1 = nn.Conv1d(config.num_labels,config.num_labels,1)
-        self.fcn2_2 = nn.Conv1d(config.num_labels,config.num_labels,1)
-        self.fcn2_3 = nn.Conv1d(config.num_labels,config.num_labels,1)
+        self.fcn2_1 = nn.Conv1d(config.num_labels, config.num_labels, 1)
+        self.fcn2_2 = nn.Conv1d(config.num_labels, config.num_labels, 1)
+        self.fcn2_3 = nn.Conv1d(config.num_labels, config.num_labels, 1)
 
-        self.fcn3_1 = nn.Conv1d(config.num_labels,config.num_labels,1)
-        self.fcn3_2 = nn.Conv1d(config.num_labels,config.num_labels,1)
-        self.fcn3_3 = nn.Conv1d(config.num_labels,config.num_labels,1)
-        
+        self.fcn3_1 = nn.Conv1d(config.num_labels, config.num_labels, 1)
+        self.fcn3_2 = nn.Conv1d(config.num_labels, config.num_labels, 1)
+        self.fcn3_3 = nn.Conv1d(config.num_labels, config.num_labels, 1)
 
     def forward(self, features, **kwargs):
-        x = features.permute(0,2,1)[:,:,1:]
-        a = features.permute(0,2,1)[:,:,1:]
-        s = features.permute(0,2,1)[:,:,0:1]
+        x = features.permute(0, 2, 1)[:, :, 1:]
+        a = features.permute(0, 2, 1)[:, :, 1:]
+        s = features.permute(0, 2, 1)[:, :, 0:1]
 
         a = self.atten1(a)
         a = torch.nn.ReLU()(a)
@@ -136,10 +137,14 @@ class RobertaEmbeddingMappingHead(nn.Module):
         r = self.fcn3_3(r)
         s = s + torch.nn.ReLU()(r)
 
-        return s+torch.sum(x*a,dim = 2,keepdim = True) , torch.sum(torch.abs((a)))
+        return s + torch.sum(x * a, dim=2, keepdim=True), torch.sum(torch.abs((a)))
+
 
 class RobertaForEmbeddingRegression(RobertaPreTrainedModel):
     _keys_to_ignore_on_load_missing = [r"position_ids"]
+
+    def set_attention_loss_weight(self, attention_loss_weight):
+        self.attention_loss_weight = attention_loss_weight
 
     def __init__(self, config):
         super().__init__(config)
@@ -169,7 +174,9 @@ class RobertaForEmbeddingRegression(RobertaPreTrainedModel):
             config.num_labels - 1]`. If :obj:`config.num_labels == 1` a regression loss is computed (Mean-Square loss),
             If :obj:`config.num_labels > 1` a classification loss is computed (Cross-Entropy).
         """
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         outputs = self.roberta(
             input_ids,
@@ -183,12 +190,15 @@ class RobertaForEmbeddingRegression(RobertaPreTrainedModel):
             return_dict=return_dict,
         )
         sequence_output = outputs[0]
-        logits , l1_attention_loss = self.mapper(sequence_output)
+        logits, l1_attention_loss = self.mapper(sequence_output)
 
         loss = None
         if labels is not None:
             loss_fct = MSELoss()
-            loss = torch.sqrt(loss_fct(logits.view(-1), labels.view(-1))) + attention_loss_weight * l1_attention_loss
+            loss = (
+                torch.sqrt(loss_fct(logits.view(-1), labels.view(-1)))
+                + self.attention_loss_weight * l1_attention_loss
+            )
 
         if not return_dict:
             output = (logits,) + outputs[2:]
