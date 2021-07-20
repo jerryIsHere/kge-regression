@@ -35,7 +35,9 @@ class PathManager:
         return self.model_name + "_ep" + str(self.epoch)
 
     def model_path(self, key):
-        return os.path.join(self.model_directory, key + "_" + self.model_describer())
+        return os.path.join(
+            self.model_directory, key + "_" + self.model_describer() + ".pt"
+        )
 
     def df_path(self):
         return (
