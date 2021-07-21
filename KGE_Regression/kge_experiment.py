@@ -362,6 +362,7 @@ class Pipeline:
                     self.models["sub_graph"]
                     .entity_embeddings()[self.training.entity_to_id[entity]]
                     .detach()
+                    .cpu()
                     .numpy()
                     for entity in selected_compound
                 ],
