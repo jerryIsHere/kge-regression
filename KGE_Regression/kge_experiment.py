@@ -463,6 +463,7 @@ class Pipeline:
                     self.training.entity_to_id["PUBCHEM.COMPOUND:" + str(cid)]
                 ]
                 .detach()
+                .cpu()
                 .numpy(),
             )
         print("checked")
