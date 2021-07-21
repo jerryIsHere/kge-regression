@@ -368,6 +368,7 @@ class Pipeline:
                 ],
             }
         )
+        self.cid_smile.cid = self.cid_smile.cid.astype(str)
         masked_cid_smile = self.cid_smile[self.cid_smile.cid.isin(masked_cid)]
         selected_cid_smile = self.cid_smile[self.cid_smile.cid.isin(selected_cid)]
         cid_embedding.cid = cid_embedding.cid.astype(selected_cid_smile.cid.dtypes)
