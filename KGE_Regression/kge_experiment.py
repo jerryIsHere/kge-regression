@@ -265,9 +265,19 @@ class Pipeline:
         now_str = now.strftime("%m-%d-%Y_%H-%M-%S")
         selected_results = [result for result in self.results if result not in mask]
         metrics_dict = {
-            "mean_rank": "Mean Rank",
-            "mean_reciprocal_rank": "Mean Reciprocal Rank",
-            "adjusted_mean_rank": "Adjusted Mean Rank",
+            "arithmetic_mean_rank": "Arithmetic Mean Rank",
+            "geometric_mean_rank": "Geometric Mean Reciprocal Rank",
+            "median_rank": "Median Rank",
+            "harmonic_mean_rank": "Harmonic Mean Rank",
+            "inverse_arithmetic_mean_rank": "Inverse Arithmetic Mean Rank",
+            "inverse_geometric_mean_rank": "Inverse Geometric Mean Rank",
+            "inverse_harmonic_mean_rank": "Inverse Harmonic Mean Rank",
+            "inverse_median_rank": "Inverse Median Rank",
+            "rank_std": "Rank Std",
+            "rank_var": "Rank Var",
+            "rank_mad": "Rank Mad",
+            "adjusted_arithmetic_mean_rank": "Adjusted Arithmetic Mean Rank",
+            "adjusted_arithmetic_mean_rank_index": "Adjusted Arithmetic Mean Rank Index",
         }
         for k in self.evaluator.ks:
             metrics_dict["hits_at_" + str(k)] = "hits_at_" + str(k)
