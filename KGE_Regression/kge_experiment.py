@@ -285,7 +285,7 @@ class Pipeline:
             for i, group in enumerate(selected_results):
                 values = self.results[group].to_flat_dict()
                 mark = x + i * group_width / len(selected_results) - group_width / 2
-                retrive_string = ".avg." + metric
+                retrive_string = ".realistic." + metric
                 avg = ax.bar(
                     mark,
                     [values[index + retrive_string] for index in parts],
@@ -294,7 +294,7 @@ class Pipeline:
                     zorder=5,
                 )
                 if metric not in avg_only:
-                    retrive_string = ".best." + metric
+                    retrive_string = ".optimistic." + metric
                     max = ax.scatter(
                         mark,
                         [values[index + retrive_string] for index in parts],
@@ -302,7 +302,7 @@ class Pipeline:
                         marker="v",
                         zorder=10,
                     )
-                    retrive_string = ".worst." + metric
+                    retrive_string = ".pessimistic." + metric
                     min = ax.scatter(
                         mark,
                         [values[index + retrive_string] for index in parts],

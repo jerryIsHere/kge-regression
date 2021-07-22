@@ -15,6 +15,10 @@ import pandas as pd
 
 convAtt_masked_cid_smile_embedding = pd.read_pickle(pm.inference_df_path("convAtt"))
 MLP_masked_cid_smile_embedding = pd.read_pickle(pm.inference_df_path("mlp"))
+convAtt_masked_cid_smile_embedding.cid = convAtt_masked_cid_smile_embedding.cid.astype(
+    int
+)
+MLP_masked_cid_smile_embedding.cid = MLP_masked_cid_smile_embedding.cid.astype(int)
 
 import torch
 import numpy as np
