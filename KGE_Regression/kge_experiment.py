@@ -281,7 +281,7 @@ class Pipeline:
         }
         for k in self.evaluator.ks:
             metrics_dict["hits_at_" + str(k)] = "hits_at_" + str(k)
-        avg_only = ["adjusted_mean_rank"]
+        avg_only = ["adjusted_arithmetic_mean_rank","adjusted_arithmetic_mean_rank_index"]
         parts = ["head", "tail", "both"]
         labels = parts
         x = np.arange(len(labels))
