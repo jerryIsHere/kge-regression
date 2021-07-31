@@ -10,4 +10,4 @@ dependencies:
   - pip
   - pip:
     - pykeen==1.5.0
-    - "--editable=git+https://github.com/jerryIsHere/kge-regression"
+    - "--editable=git+https://github.com/jerryIsHere/kge-regression#egg=KGE_Regression"
