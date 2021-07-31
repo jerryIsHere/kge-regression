@@ -1,11 +1,13 @@
 name: kgeRegres
 dependencies:
-  - python=3.6
+  - python=3.8
   - pytorch
   - numpy
   - scikit-learn
   - pandas
   - matplotlib
+  - transformers
   - pip
   - pip:
-    - pykeen
+    - pykeen==1.5.0
+    - "--editable=git+https://github.com/jerryIsHere/kge-regression"
