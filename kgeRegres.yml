@@ -6,5 +6,6 @@ dependencies:
   - sklearn
   - pandas
   - matplotlib
+  - pip
   - pip:
     - pykeen
