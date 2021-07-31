@@ -1,0 +1,10 @@
+name: kgeRegres
+dependencies:
+  - python=3.6
+  - torch
+  - numpy
+  - sklearn
+  - pandas
+  - matplotlib
+  - pip:
+    - pykeen

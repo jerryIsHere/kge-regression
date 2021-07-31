@@ -294,7 +294,6 @@ class Pipeline:
             fig.set_size_inches(15, 7)
             for i, group in enumerate(selected_results):
                 values = self.results[group].to_flat_dict()
-                print(values)
                 mark = x + i * group_width / len(selected_results) - group_width / 2
                 retrive_string = ".realistic." + metric
                 avg = ax.bar(
