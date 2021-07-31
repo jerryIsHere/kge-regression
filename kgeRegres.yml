@@ -1,9 +1,9 @@
 name: kgeRegres
 dependencies:
   - python=3.6
-  - torch
+  - pytorch
   - numpy
-  - sklearn
+  - scikit-learn
   - pandas
   - matplotlib
   - pip
