@@ -3,12 +3,15 @@ import os
 import numpy as np
 import pandas as pd
 from functools import reduce
-from pykeen.models import TransE
+from pykeen.models import TransE, RESCAL
 
 Model_dict = {
     "TransE_400": lambda triples_factory: TransE(
         triples_factory=triples_factory, embedding_dim=400, random_seed=1234
-    )
+    ),
+    "RESCAL_400": lambda triples_factory: TransE(
+        triples_factory=triples_factory, embedding_dim=400, random_seed=1234
+    ),
 }
 
 
@@ -159,7 +162,7 @@ class Pipeline:
             )
         return self
 
-    def train_full_graph(self, patience=2, frequency=10):
+    def train_full_graph(self, patience=5, frequency=10):
         print("\ntrain on full graph")
         model = Model_dict[self.path_manager.model_name](
             triples_factory=self.dataset.training
@@ -187,7 +190,7 @@ class Pipeline:
         )
         return self
 
-    def train_sub_graph(self, patience=2, frequency=10):
+    def train_sub_graph(self, patience=5, frequency=10):
         print("\ntrain on sub graph")
         my_model = Model_dict[self.path_manager.model_name](
             triples_factory=self.training
