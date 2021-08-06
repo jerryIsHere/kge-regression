@@ -1,6 +1,10 @@
 name: kgeRegres
+channels:
+  - pytorch
+  - conda-forge
 dependencies:
   - python=3.8
+  - cudatoolkit=10.2
   - pytorch
   - numpy
   - scikit-learn
