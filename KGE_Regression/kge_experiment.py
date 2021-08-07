@@ -12,6 +12,9 @@ Model_dict = {
     "RESCAL_400": lambda triples_factory: TransE(
         triples_factory=triples_factory, embedding_dim=400, random_seed=1234
     ),
+    "RESCAL_100": lambda triples_factory: TransE(
+        triples_factory=triples_factory, embedding_dim=100, random_seed=1234
+    ),
 }
 
 
