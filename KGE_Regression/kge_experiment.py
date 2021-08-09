@@ -9,11 +9,14 @@ Model_dict = {
     "TransE_400": lambda triples_factory: TransE(
         triples_factory=triples_factory, embedding_dim=400, random_seed=1234
     ),
-    "RESCAL_400": lambda triples_factory: TransE(
+    "RESCAL_400": lambda triples_factory: RESCAL(
         triples_factory=triples_factory, embedding_dim=400, random_seed=1234
     ),
-    "RESCAL_100": lambda triples_factory: TransE(
+    "RESCAL_100": lambda triples_factory: RESCAL(
         triples_factory=triples_factory, embedding_dim=100, random_seed=1234
+    ),
+    "RESCAL_50": lambda triples_factory: RESCAL(
+        triples_factory=triples_factory, embedding_dim=50, random_seed=1234
     ),
 }
 
