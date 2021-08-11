@@ -90,7 +90,7 @@ default_config = {
         evaluator_kwargs=dict(filtered=True),
         evaluation_kwargs=dict(batch_size=64),
         stopper="early",
-        stopper_kwargs=dict(evaluation_batch_size=64),
+        stopper_kwargs=dict(evaluation_batch_size=64, patience=5, frequency=100),
     ),
 }
 
@@ -202,14 +202,12 @@ class Pipeline:
             )
         return self
 
-    def train_full_graph(self, patience=5, frequency=5):
+    def train_full_graph(self):
         print("\ntrain on full graph")
         config = self.config.copy()
         config["pipeline"]["training"] = self.dataset.training
         config["pipeline"]["validation"] = self.dataset.validation
         config["pipeline"]["testing"] = self.dataset.testing
-        config["pipeline"]["stopper_kwargs"]["patience"] = patience
-        config["pipeline"]["stopper_kwargs"]["frequency"] = frequency
         config["pipeline"]["save_model_directory"] = self.path_manager.model_path(
             "full_graph"
         )
@@ -226,14 +224,12 @@ class Pipeline:
         )
         return self
 
-    def train_sub_graph(self, patience=5, frequency=10):
+    def train_sub_graph(self):
         print("\ntrain on sub graph")
         config = self.config.copy()
         config["pipeline"]["training"] = self.training
         config["pipeline"]["validation"] = self.validation
         config["pipeline"]["testing"] = self.testing
-        config["pipeline"]["stopper_kwargs"]["patience"] = patience
-        config["pipeline"]["stopper_kwargs"]["frequency"] = frequency
         config["pipeline"]["save_model_directory"] = self.path_manager.model_path(
             "sub_graph"
         )
