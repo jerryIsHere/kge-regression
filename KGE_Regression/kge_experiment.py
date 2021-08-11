@@ -26,14 +26,12 @@ class PathManager:
     def __init__(
         self,
         model_name,
-        epoch,
         smile_path,
         cache_directory,
         model_directory,
         pandas_directory,
     ):
         self.model_name = model_name
-        self.epoch = epoch
         self.smile_path = smile_path
         self.cache_directory = cache_directory
         self.model_directory = model_directory
@@ -42,7 +40,7 @@ class PathManager:
     def model_describer(
         self,
     ):
-        return self.model_name + "_ep" + str(self.epoch)
+        return self.model_name
 
     def model_path(self, key):
         return os.path.join(
@@ -209,8 +207,12 @@ class Pipeline:
         config["pipeline"]["training"] = self.dataset.training
         config["pipeline"]["validation"] = self.dataset.validation
         config["pipeline"]["testing"] = self.dataset.testing
-        config["pipeline"]["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
-        config["pipeline"]["save_model_directory"] = self.path_manager.model_path("full_graph")
+        config["pipeline"]["stopper_kwargs"] = dict(
+            patience=patience, frequency=frequency
+        )
+        config["pipeline"]["save_model_directory"] = self.path_manager.model_path(
+            "full_graph"
+        )
         print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
 
@@ -230,8 +232,12 @@ class Pipeline:
         config["pipeline"]["training"] = self.training
         config["pipeline"]["validation"] = self.validation
         config["pipeline"]["testing"] = self.testing
-        config["pipeline"]["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
-        config["pipeline"]["save_model_directory"] = self.path_manager.model_path("sub_graph")
+        config["pipeline"]["stopper_kwargs"] = dict(
+            patience=patience, frequency=frequency
+        )
+        config["pipeline"]["save_model_directory"] = self.path_manager.model_path(
+            "sub_graph"
+        )
         print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
 
