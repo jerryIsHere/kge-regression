@@ -204,13 +204,14 @@ class Pipeline:
         return self
 
     def train_full_graph(self, patience=5, frequency=5):
-        print("\ntrain on full graph for " + self.config["model"])
+        print("\ntrain on full graph")
         config = self.config.copy()
         config["training"] = self.dataset.training
         config["validation"] = self.dataset.validation
         config["testing"] = self.dataset.testing
         config["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
         config["save_model_directory"] = self.path_manager.model_path("full_graph")
+        print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
 
         self.models["full_graph"] = self.load("full_graph")
@@ -224,13 +225,14 @@ class Pipeline:
         return self
 
     def train_sub_graph(self, patience=5, frequency=10):
-        print("\ntrain on sub graph for " + self.config["model"])
+        print("\ntrain on sub graph")
         config = self.config.copy()
         config["training"] = self.training
         config["validation"] = self.validation
         config["testing"] = self.testing
         config["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
         config["save_model_directory"] = self.path_manager.model_path("sub_graph")
+        print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
 
         self.models["sub_graph"] = self.load("sub_graph")
