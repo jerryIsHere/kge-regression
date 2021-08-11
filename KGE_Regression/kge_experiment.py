@@ -88,8 +88,9 @@ default_config = {
         negative_sampler="basic",
         negative_sampler_kwargs=dict(num_negs_per_pos=1),
         evaluator_kwargs=dict(filtered=True),
-        evaluation_kwargs=dict(batch_size=256),
+        evaluation_kwargs=dict(batch_size=2048),
         stopper="early",
+        stopper_kwargs=dict(evaluation_batch_size=2048),
     ),
 }
 
@@ -207,9 +208,8 @@ class Pipeline:
         config["pipeline"]["training"] = self.dataset.training
         config["pipeline"]["validation"] = self.dataset.validation
         config["pipeline"]["testing"] = self.dataset.testing
-        config["pipeline"]["stopper_kwargs"] = dict(
-            patience=patience, frequency=frequency
-        )
+        config["pipeline"]["stopper_kwargs"]["patience"] = patience
+        config["pipeline"]["stopper_kwargs"]["frequency"] = frequency
         config["pipeline"]["save_model_directory"] = self.path_manager.model_path(
             "full_graph"
         )
@@ -232,9 +232,8 @@ class Pipeline:
         config["pipeline"]["training"] = self.training
         config["pipeline"]["validation"] = self.validation
         config["pipeline"]["testing"] = self.testing
-        config["pipeline"]["stopper_kwargs"] = dict(
-            patience=patience, frequency=frequency
-        )
+        config["pipeline"]["stopper_kwargs"]["patience"] = patience
+        config["pipeline"]["stopper_kwargs"]["frequency"] = frequency
         config["pipeline"]["save_model_directory"] = self.path_manager.model_path(
             "sub_graph"
         )
