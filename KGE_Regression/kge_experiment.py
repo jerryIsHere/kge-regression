@@ -204,7 +204,7 @@ class Pipeline:
         return self
 
     def train_full_graph(self, patience=5, frequency=5):
-        print("\ntrain on full graph")
+        print("\ntrain on full graph for " + self.config["model"])
         config = self.config.copy()
         config["training"] = self.dataset.training
         config["validation"] = self.dataset.validation
@@ -224,7 +224,7 @@ class Pipeline:
         return self
 
     def train_sub_graph(self, patience=5, frequency=10):
-        print("\ntrain on sub graph")
+        print("\ntrain on sub graph for " + self.config["model"])
         config = self.config.copy()
         config["training"] = self.training
         config["validation"] = self.validation
