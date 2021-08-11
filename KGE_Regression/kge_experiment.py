@@ -1,24 +1,25 @@
-from torch.optim import Adam
 import os
 import numpy as np
 import pandas as pd
 from functools import reduce
-from pykeen.models import TransE, RESCAL
+from pykeen.hpo import hpo_pipeline_from_config
+from optuna.samplers import TPESampler
 
-Model_dict = {
-    "TransE_400": lambda triples_factory: TransE(
-        triples_factory=triples_factory, embedding_dim=400, random_seed=1234
-    ),
-    "RESCAL_400": lambda triples_factory: RESCAL(
-        triples_factory=triples_factory, embedding_dim=400, random_seed=1234
-    ),
-    "RESCAL_100": lambda triples_factory: RESCAL(
-        triples_factory=triples_factory, embedding_dim=100, random_seed=1234
-    ),
-    "RESCAL_50": lambda triples_factory: RESCAL(
-        triples_factory=triples_factory, embedding_dim=50, random_seed=1234
-    ),
-}
+
+# Model_dict = {
+#     "TransE_400": lambda triples_factory: TransE(
+#         triples_factory=triples_factory, embedding_dim=400, random_seed=1234
+#     ),
+#     "RESCAL_400": lambda triples_factory: RESCAL(
+#         triples_factory=triples_factory, embedding_dim=400, random_seed=1234
+#     ),
+#     "RESCAL_100": lambda triples_factory: RESCAL(
+#         triples_factory=triples_factory, embedding_dim=100, random_seed=1234
+#     ),
+#     "RESCAL_50": lambda triples_factory: RESCAL(
+#         triples_factory=triples_factory, embedding_dim=50, random_seed=1234
+#     ),
+# }
 
 
 class PathManager:
@@ -67,20 +68,52 @@ class PathManager:
         )
 
 
+default_config = {
+    "optuna": dict(
+        n_trials=50,
+    ),
+    "pipeline": dict(
+        model_kwargs_ranges=dict(
+            embedding_dim=dict(type="categorical", choices=[20, 30, 50, 100, 150, 200]),
+        ),
+        optimizer="SGD",
+        optimizer_kwargs_ranges=dict(lr=dict(type="categorical", choices=[0.1, 0.01])),
+        loss="marginranking",
+        loss_kwargs_ranges=dict(
+            margin=dict(type="categorical", choices=[0.5, 1, 2, 10, 15])
+        ),
+        training_loop="slcwa",
+        training_kwargs=dict(
+            batch_size=2048,
+            num_epochs=2000,
+        ),
+        negative_sampler="basic",
+        negative_sampler_kwargs=dict(num_negs_per_pos=1),
+        evaluator_kwargs=dict(filtered=True),
+        evaluation_kwargs=dict(batch_size=2048),
+        stopper="early",
+    ),
+}
+
+
 class Pipeline:
     def __init__(
         self,
         dataset,
         path_manager: PathManager,
-        optiizer=Adam,
+        config=default_config,
+        optiizer="SGD",
         ks=[1, 3, 5, 10],
     ):
 
         from pykeen.evaluation import RankBasedEvaluator
 
-        self.evaluator = RankBasedEvaluator(ks=ks)
-        self.optimizer = optiizer
+        self.evaluator = RankBasedEvaluator(ks=ks, filtered=True)
         self.path_manager = path_manager
+
+        self.config = config.copy()
+        self.config["model"] = self.path_manager.model_name
+        # self.optimizer = optiizer
         self.dataset = dataset(cache_root=self.path_manager.cache_directory)
         sub_graph_path = os.path.join(
             self.path_manager.cache_directory, "sub_graph.npz"
@@ -104,8 +137,10 @@ class Pipeline:
             )
         loaded = np.load(sub_graph_path)
         my_training = loaded["training"]
+        my_validation = loaded["validation"]
         my_testing = loaded["testing"]
         self.training = TriplesFactory.from_labeled_triples(my_training)
+        self.validation = TriplesFactory.from_labeled_triples(my_validation)
         self.testing = TriplesFactory.from_labeled_triples(my_testing)
         # don't use new_with_restriction, as the masked entity are still in the entity_to_id list,
         # that triple with masked entity would still be sampled in negative samping,
@@ -168,28 +203,20 @@ class Pipeline:
             )
         return self
 
-    def train_full_graph(self, patience=5, frequency=10):
+    def train_full_graph(self, patience=5, frequency=5):
         print("\ntrain on full graph")
-        model = Model_dict[self.path_manager.model_name](
-            triples_factory=self.dataset.training
-        )
+        config = self.config.copy()
+        config["training"] = self.dataset.training
+        config["validation"] = self.dataset.validation
+        config["testing"] = self.dataset.testing
+        config["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
+        config["save_model_directory"] = self.path_manager.model_path("full_graph")
+        hpo_pipeline_result = hpo_pipeline_from_config(config)
 
-        from pykeen.training import SLCWATrainingLoop
-
-        training_loop = SLCWATrainingLoop(
-            model=model,
-            triples_factory=self.dataset.training,
-            optimizer=self.optimizer(params=model.get_grad_params()),
-        )
-        training_loop.train(
-            triples_factory=self.dataset.training,
-            num_epochs=self.path_manager.epoch,
-            batch_size=2048,
-        )
-        self.models["full_graph"] = model
+        self.models["full_graph"] = self.load("full_graph")
         return self
 
-    def evaluate_full_graph(self, batch_size=None):
+    def evaluate_full_graph(self, batch_size=2048):
         print("\nevaluate on full graph")
         self.results["full_graph"] = self.evaluate(
             "full_graph", self.dataset.testing.mapped_triples, batch_size=batch_size
@@ -198,37 +225,31 @@ class Pipeline:
 
     def train_sub_graph(self, patience=5, frequency=10):
         print("\ntrain on sub graph")
-        my_model = Model_dict[self.path_manager.model_name](
-            triples_factory=self.training
-        )
+        config = self.config.copy()
+        config["training"] = self.training
+        config["validation"] = self.validation
+        config["testing"] = self.testing
+        config["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
+        config["save_model_directory"] = self.path_manager.model_path("sub_graph")
+        hpo_pipeline_result = hpo_pipeline_from_config(config)
 
-        from pykeen.training import SLCWATrainingLoop
-
-        training_loop = SLCWATrainingLoop(
-            model=my_model,
-            triples_factory=self.training,
-            optimizer=self.optimizer(params=my_model.get_grad_params()),
-        )
-        training_loop.train(
-            triples_factory=self.training,
-            num_epochs=self.path_manager.epoch,
-            batch_size=2048,
-        )
-        self.models["sub_graph"] = my_model
+        self.models["sub_graph"] = self.load("sub_graph")
         return self
 
-    def evaluate_sub_graph(self, batch_size=None):
+    def evaluate_sub_graph(self, batch_size=2048):
         print("\nevaluate on sub graph")
         self.results["sub_graph"] = self.evaluate(
             "sub_graph", self.testing.mapped_triples, batch_size=batch_size
         )
         return self
 
-    def build_complemented_model(self, complete_function=None, name="com_random"):
+    def build_complemented_model(
+        self, model_builder, complete_function=None, name="com_random"
+    ):
         import torch
 
         with torch.no_grad():
-            complemented_model = Model_dict[self.path_manager.model_name](
+            complemented_model = model_builder(
                 triples_factory=self.dataset.training
             ).cpu()
             for e in self.dataset.training.entity_to_id:
@@ -290,7 +311,10 @@ class Pipeline:
         }
         for k in self.evaluator.ks:
             metrics_dict["hits_at_" + str(k)] = "hits_at_" + str(k)
-        avg_only = ["adjusted_arithmetic_mean_rank","adjusted_arithmetic_mean_rank_index"]
+        avg_only = [
+            "adjusted_arithmetic_mean_rank",
+            "adjusted_arithmetic_mean_rank_index",
+        ]
         parts = ["head", "tail", "both"]
         labels = parts
         x = np.arange(len(labels))
@@ -519,6 +543,7 @@ def build_sub_graph(dataset, sub_graph_path, skip_id, split=0.2):
         dataset.training.entity_to_id[name] for name in random_compound
     ]
     my_training = dataset.training.mapped_triples.numpy()
+    my_validation = dataset.validation.mapped_triples.numpy()
     my_testing = dataset.testing.mapped_triples.numpy()
     span_index = 0
     span = 1
@@ -529,6 +554,7 @@ def build_sub_graph(dataset, sub_graph_path, skip_id, split=0.2):
         while True:
             candidate = random_compound_id[offset : offset + span]
             temp_training = my_training
+            temp_validation = my_validation
             temp_testing = my_testing
             training_mask = np.logical_not(
                 np.logical_or(
@@ -537,6 +563,13 @@ def build_sub_graph(dataset, sub_graph_path, skip_id, split=0.2):
                 )
             )
             temp_training = temp_training[training_mask]
+            validation_mask = np.logical_not(
+                np.logical_or(
+                    np.isin(temp_validation[:, 0], candidate),
+                    np.isin(temp_validation[:, 2], candidate),
+                )
+            )
+            temp_validation = temp_validation[validation_mask]
             testing_mask = np.logical_not(
                 np.logical_or(
                     np.isin(temp_testing[:, 0], candidate),
@@ -563,6 +596,7 @@ def build_sub_graph(dataset, sub_graph_path, skip_id, split=0.2):
         offset = offset + span
         my_entity = my_entity + span
         my_training = temp_training
+        my_validation = temp_validation
         my_testing = temp_testing
         span_index = span_index + 1
         span = 2 ** span_index
@@ -578,6 +612,16 @@ def build_sub_graph(dataset, sub_graph_path, skip_id, split=0.2):
                 dataset.training.entity_id_to_label[row[2]],
             ]
             for row in my_training
+        ]
+    )
+    my_validation = np.array(
+        [
+            [
+                dataset.validation.entity_id_to_label[row[0]],
+                dataset.validation.relation_id_to_label[row[1]],
+                dataset.validation.entity_id_to_label[row[2]],
+            ]
+            for row in my_validation
         ]
     )
     my_testing = np.array(
@@ -617,4 +661,9 @@ def build_sub_graph(dataset, sub_graph_path, skip_id, split=0.2):
     for removed in set(dataset.entity_to_id).difference(my_entity):
         assert "PUBCHEM.COMPOUND" in removed
     print("checked")
-    np.savez_compressed(sub_graph_path, training=my_training, testing=my_testing)
+    np.savez_compressed(
+        sub_graph_path,
+        training=my_training,
+        testing=my_testing,
+        validation=my_validation,
+    )
