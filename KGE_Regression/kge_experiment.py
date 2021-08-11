@@ -90,7 +90,7 @@ default_config = {
         evaluator_kwargs=dict(filtered=True),
         evaluation_kwargs=dict(batch_size=64),
         stopper="early",
-        stopper_kwargs=dict(evaluation_batch_size=64, patience=5, frequency=100),
+        stopper_kwargs=dict(evaluation_batch_size=64, patience=3, frequency=100),
     ),
 }
 
