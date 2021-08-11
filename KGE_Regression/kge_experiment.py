@@ -112,7 +112,7 @@ class Pipeline:
         self.path_manager = path_manager
 
         self.config = config.copy()
-        self.config["model"] = self.path_manager.model_name
+        self.config["pipeline"]["model"] = self.path_manager.model_name
         # self.optimizer = optiizer
         self.dataset = dataset(cache_root=self.path_manager.cache_directory)
         sub_graph_path = os.path.join(
@@ -206,11 +206,11 @@ class Pipeline:
     def train_full_graph(self, patience=5, frequency=5):
         print("\ntrain on full graph")
         config = self.config.copy()
-        config["training"] = self.dataset.training
-        config["validation"] = self.dataset.validation
-        config["testing"] = self.dataset.testing
-        config["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
-        config["save_model_directory"] = self.path_manager.model_path("full_graph")
+        config["pipeline"]["training"] = self.dataset.training
+        config["pipeline"]["validation"] = self.dataset.validation
+        config["pipeline"]["testing"] = self.dataset.testing
+        config["pipeline"]["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
+        config["pipeline"]["save_model_directory"] = self.path_manager.model_path("full_graph")
         print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
 
@@ -227,11 +227,11 @@ class Pipeline:
     def train_sub_graph(self, patience=5, frequency=10):
         print("\ntrain on sub graph")
         config = self.config.copy()
-        config["training"] = self.training
-        config["validation"] = self.validation
-        config["testing"] = self.testing
-        config["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
-        config["save_model_directory"] = self.path_manager.model_path("sub_graph")
+        config["pipeline"]["training"] = self.training
+        config["pipeline"]["validation"] = self.validation
+        config["pipeline"]["testing"] = self.testing
+        config["pipeline"]["stopper_kwargs"] = dict(patience=patience, frequency=frequency)
+        config["pipeline"]["save_model_directory"] = self.path_manager.model_path("sub_graph")
         print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
 
