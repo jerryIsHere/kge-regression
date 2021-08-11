@@ -88,9 +88,9 @@ default_config = {
         negative_sampler="basic",
         negative_sampler_kwargs=dict(num_negs_per_pos=1),
         evaluator_kwargs=dict(filtered=True),
-        evaluation_kwargs=dict(batch_size=2048),
+        evaluation_kwargs=dict(batch_size=64),
         stopper="early",
-        stopper_kwargs=dict(evaluation_batch_size=2048),
+        stopper_kwargs=dict(evaluation_batch_size=64),
     ),
 }
 
