@@ -42,10 +42,11 @@ class PathManager:
     ):
         return self.model_name
 
-    def model_path(self, key):
-        return os.path.join(
-            self.model_directory, key + "_" + self.model_describer() + ".pt"
-        )
+    def model_path(self, key, trial):
+        return os.path.join(self.model_dir_path(key), str(trial), "trained_model.pkl")
+
+    def model_dir_path(self, key):
+        return os.path.join(self.model_directory, key + "_" + self.model_describer())
 
     def df_path(self):
         return (
@@ -166,35 +167,35 @@ class Pipeline:
             )
             print("checked")
 
-    def save_full_graph(self):
-        self.save("full_graph")
-        return self
+    # def save_full_graph(self):
+    #     self.save("full_graph")
+    #     return self
 
-    def save_sub_graph(self):
-        self.save("sub_graph")
-        return self
+    # def save_sub_graph(self):
+    #     self.save("sub_graph")
+    #     return self
 
-    def save(self, model_key):
-        import torch
-        import pickle
+    # def save(self, model_key, trial):
+    #     import torch
+    #     import pickle
 
-        torch.save(
-            self.models[model_key],
-            self.path_manager.model_path(model_key),
-            pickle_protocol=pickle.HIGHEST_PROTOCOL,
-        )
-        return self
+    #     torch.save(
+    #         self.models[model_key],
+    #         self.path_manager.model_path(model_key),
+    #         pickle_protocol=pickle.HIGHEST_PROTOCOL,
+    #     )
+    #     return self
 
-    def save_all(self):
-        for graph in self.models:
-            self.save(graph)
-        return self
+    # def save_all(self):
+    #     for graph in self.models:
+    #         self.save(graph)
+    #     return self
 
-    def load(self, graph, map_location=None):
+    def load(self, graph, trial, map_location=None):
         import torch
         import os
 
-        model_path = self.path_manager.model_path(graph)
+        model_path = self.path_manager.model_path(graph, trial)
         if os.path.exists(model_path):
             self.models[graph] = torch.load(
                 model_path,
@@ -208,13 +209,16 @@ class Pipeline:
         config["pipeline"]["training"] = self.dataset.training
         config["pipeline"]["validation"] = self.dataset.validation
         config["pipeline"]["testing"] = self.dataset.testing
-        config["pipeline"]["save_model_directory"] = self.path_manager.model_path(
+        config["pipeline"]["save_model_directory"] = self.path_manager.model_dir_path(
             "full_graph"
         )
         print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
-
-        self.models["full_graph"] = self.load("full_graph")
+        print(hpo_pipeline_result.study.best_params)
+        print(hpo_pipeline_result.study.best_trial.number)
+        self.models["full_graph"] = self.load(
+            "full_graph", hpo_pipeline_result.study.best_trial.number
+        )
         return self
 
     def evaluate_full_graph(self, batch_size=2048):
@@ -230,13 +234,15 @@ class Pipeline:
         config["pipeline"]["training"] = self.training
         config["pipeline"]["validation"] = self.validation
         config["pipeline"]["testing"] = self.testing
-        config["pipeline"]["save_model_directory"] = self.path_manager.model_path(
+        config["pipeline"]["save_model_directory"] = self.path_manager.model_dir_path(
             "sub_graph"
         )
         print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
-
-        self.models["sub_graph"] = self.load("sub_graph")
+        print(hpo_pipeline_result.study.best_params)
+        self.models["sub_graph"] = self.load(
+            "sub_graph", hpo_pipeline_result.study.best_trial.number
+        )
         return self
 
     def evaluate_sub_graph(self, batch_size=2048):
