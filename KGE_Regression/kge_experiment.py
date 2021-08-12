@@ -72,7 +72,7 @@ default_config = {
         n_trials=50,
     ),
     "pipeline": dict(
-        model_kwargs=dict(seed=1234),
+        model_kwargs=dict(random_seed=1234),
         model_kwargs_ranges=dict(
             embedding_dim=dict(type="categorical", choices=[300]),
         ),
