@@ -191,9 +191,20 @@ class Pipeline:
     #         self.save(graph)
     #     return self
 
-    def load(self, graph, trial, map_location=None):
+    def load(self, graph, trial=None, map_location=None):
         import torch
         import os
+
+        if trial == None:
+            import json
+
+            f = open(
+                os.path.join(
+                    self.path_manager.model_path(graph), "pipeline_config.json"
+                )
+            )
+            pipeline_config = json.load(f)
+            trial = pipeline_config["metadata"]["best_trial_number"]
 
         model_path = self.path_manager.model_path(graph, trial)
         if os.path.exists(model_path):
@@ -216,6 +227,9 @@ class Pipeline:
         hpo_pipeline_result = hpo_pipeline_from_config(config)
         print(hpo_pipeline_result.study.best_params)
         print(hpo_pipeline_result.study.best_trial.number)
+        hpo_pipeline_result.save_to_directory(
+            self.path_manager.model_dir_path("full_graph")
+        )
         self.models["full_graph"] = self.load(
             "full_graph", hpo_pipeline_result.study.best_trial.number
         )
@@ -240,6 +254,10 @@ class Pipeline:
         print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
         print(hpo_pipeline_result.study.best_params)
+        print(hpo_pipeline_result.study.best_trial.number)
+        hpo_pipeline_result.save_to_directory(
+            self.path_manager.model_dir_path("sub_graph")
+        )
         self.models["sub_graph"] = self.load(
             "sub_graph", hpo_pipeline_result.study.best_trial.number
         )
