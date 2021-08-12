@@ -9,5 +9,4 @@ pm = PathManager(
     pandas_directory="/public/ckchan666/CS6536/pd",
 )
 exp = Pipeline(OpenBioLink, pm)
-embedding_smile_path, masked_cid_smile_path = pm.df_path()
-exp.train_sub_graph().build_pandas()
+exp.load("sub_graph").build_pandas()

@@ -72,26 +72,31 @@ default_config = {
         n_trials=50,
     ),
     "pipeline": dict(
+        model_kwargs=dict(seed=1234),
         model_kwargs_ranges=dict(
-            embedding_dim=dict(type="categorical", choices=[20, 30, 50, 100, 150, 200]),
+            embedding_dim=dict(type="categorical", choices=[300]),
         ),
         optimizer="SGD",
-        optimizer_kwargs_ranges=dict(lr=dict(type="categorical", choices=[0.1, 0.01])),
-        loss="marginranking",
-        loss_kwargs_ranges=dict(
-            margin=dict(type="categorical", choices=[0.5, 1, 2, 10, 15])
+        optimizer_kwargs_ranges=dict(
+            lr=dict(type="categorical", choices=[0.05, 0.045, 0.0475, 0.055, 0.0525])
         ),
+        regularizer="LpRegularizer",
+        regularizer_kwargs_ranges=dict(
+            weight=dict(type="categorical", choices=[3e-7]),
+            p=dict(type="categorical", choices=[1, 2]),
+        ),
+        loss="BCEAfterSigmoidLoss",
         training_loop="slcwa",
         training_kwargs=dict(
             batch_size=2048,
-            num_epochs=2000,
+            num_epochs=3000,
         ),
         negative_sampler="basic",
         negative_sampler_kwargs=dict(num_negs_per_pos=1),
         evaluator_kwargs=dict(filtered=True),
         evaluation_kwargs=dict(batch_size=64),
         stopper="early",
-        stopper_kwargs=dict(evaluation_batch_size=64, patience=3, frequency=100),
+        stopper_kwargs=dict(evaluation_batch_size=64, patience=5, frequency=100),
     ),
 }
 
@@ -225,11 +230,11 @@ class Pipeline:
         )
         print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
-        print(hpo_pipeline_result.study.best_params)
-        print(hpo_pipeline_result.study.best_trial.number)
         hpo_pipeline_result.save_to_directory(
             self.path_manager.model_dir_path("full_graph")
         )
+        print(hpo_pipeline_result.study.best_params)
+        print(hpo_pipeline_result.study.best_trial.number)
         self.models["full_graph"] = self.load(
             "full_graph", hpo_pipeline_result.study.best_trial.number
         )
@@ -253,11 +258,11 @@ class Pipeline:
         )
         print(config)
         hpo_pipeline_result = hpo_pipeline_from_config(config)
-        print(hpo_pipeline_result.study.best_params)
-        print(hpo_pipeline_result.study.best_trial.number)
         hpo_pipeline_result.save_to_directory(
             self.path_manager.model_dir_path("sub_graph")
         )
+        print(hpo_pipeline_result.study.best_params)
+        print(hpo_pipeline_result.study.best_trial.number)
         self.models["sub_graph"] = self.load(
             "sub_graph", hpo_pipeline_result.study.best_trial.number
         )
