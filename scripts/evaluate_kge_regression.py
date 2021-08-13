@@ -50,13 +50,13 @@ def MLP_mapping(entity):
 from pykeen.models import RESCAL
 
 model_builder = lambda triples_factory: RESCAL(
-    triples_factory=triples_factory, embedding_dim=50, random_seed=1234
+    triples_factory=triples_factory, embedding_dim=300, random_seed=1234
 )
 exp.load("sub_graph",).load(
     "full_graph",
 )
 name = "com_convAtt"
-exp.build_complemented_model(model_builder, model_builder, convAtt_mapping, name)
+exp.build_complemented_model(model_builder, convAtt_mapping, name)
 exp.evaluate_complemented_model(name)
 del exp.models[name]
 
